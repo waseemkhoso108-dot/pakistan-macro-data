@@ -18,6 +18,7 @@ import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -29,16 +30,26 @@ RAW_DIR = ROOT / "data" / "raw"
 CLEAN_DIR = ROOT / "data" / "clean"
 METADATA_PATH = ROOT / "metadata" / "series_metadata.json"
 
-WB_API = "https://api.worldbank.org/v2/country/PK/indicator/{code}?format=json&per_page=2000"
-HEADERS = {"User-Agent": "pakistan-macro-data-fetcher/0.1 (+https://github.com)"}
+WB_API_ANNUAL = "https://api.worldbank.org/v2/country/PAK/indicator/{code}?format=json&per_page=2000"
+WB_API_MONTHLY = "https://api.worldbank.org/v2/country/PAK/indicator/{code}?date=1960M01:2026M12&format=json&per_page=2000"
+HEADERS = {"User-Agent": "pakistan-macro-data-fetcher/0.2"}
 
 
-def fetch_indicator(code: str, retries: int = 3) -> pd.DataFrame:
-    """Pull one World Bank indicator for Pakistan as a tidy (year, value) frame."""
-    last_exc: Exception | None = None
+def _parse_wb_date(date_str: str) -> str:
+    """GEM dates look like '2021M07' -> ISO '2021-07-01'; WDI annual dates
+    look like '2021' -> '2021-01-01'."""
+    if "M" in date_str:
+        year, month = date_str.split("M")
+        return f"{int(year):04d}-{int(month):02d}-01"
+    return f"{int(date_str):04d}-01-01"
+
+
+def _fetch_indicator(spec: SeriesSpec, retries: int = 3) -> pd.DataFrame:
+    url_template = WB_API_MONTHLY if spec.source == "GEM" else WB_API_ANNUAL
+    last_exc = None
     for attempt in range(1, retries + 1):
         try:
-            resp = requests.get(WB_API.format(code=code), headers=HEADERS, timeout=30)
+            resp = requests.get(url_template.format(code=spec.indicator_code), headers=HEADERS, timeout=30)
             resp.raise_for_status()
             payload = resp.json()
             break
@@ -47,29 +58,35 @@ def fetch_indicator(code: str, retries: int = 3) -> pd.DataFrame:
             if attempt < retries:
                 time.sleep(2 * attempt)
     else:
-        raise RuntimeError(f"failed to fetch indicator {code} after {retries} attempts") from last_exc
-    if len(payload) < 2 or not payload[1]:
-        raise RuntimeError(f"World Bank API returned no observations for indicator {code}")
+        raise RuntimeError(f"failed to fetch indicator {spec.indicator_code} after {retries} attempts") from last_exc
 
-    records = [{"year": int(row["date"]), "value": row["value"]} for row in payload[1]]
-    df = pd.DataFrame(records).dropna(subset=["value"]).sort_values("year").reset_index(drop=True)
+    if len(payload) < 2 or not payload[1]:
+        raise RuntimeError(f"World Bank API returned no observations for indicator {spec.indicator_code}")
+
+    records = [
+        {"date": _parse_wb_date(row["date"]), "value": row["value"]} for row in payload[1] if row["value"] is not None
+    ]
+    df = pd.DataFrame(records).drop_duplicates(subset="date").sort_values("date").reset_index(drop=True)
     return df
 
 
 def fetch_and_clean_series(spec: SeriesSpec) -> tuple[pd.DataFrame, dict]:
-    raw = fetch_indicator(spec.indicator_code)
+    raw = _fetch_indicator(spec)
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     raw.to_csv(RAW_DIR / f"{spec.slug}.csv", index=False)
 
-    clean = raw.copy()
-    clean = clean.drop_duplicates(subset="year").sort_values("year").reset_index(drop=True)
+    clean = raw.drop_duplicates(subset="date").sort_values("date").reset_index(drop=True)
     CLEAN_DIR.mkdir(parents=True, exist_ok=True)
     clean.to_csv(CLEAN_DIR / f"{spec.slug}.csv", index=False)
 
     meta = {
         "slug": spec.slug,
         "description": spec.description,
-        "source": "World Bank World Development Indicators (api.worldbank.org)",
+        "source": (
+            "World Bank Global Economic Monitor (GEM, source id 15), api.worldbank.org"
+            if spec.source == "GEM"
+            else "World Bank World Development Indicators (WDI), api.worldbank.org"
+        ),
         "indicator_code": spec.indicator_code,
         "country": "Pakistan (PK)",
         "frequency": spec.frequency,
@@ -77,8 +94,8 @@ def fetch_and_clean_series(spec: SeriesSpec) -> tuple[pd.DataFrame, dict]:
         "base_year": spec.base_year,
         "seasonal_adjustment": spec.seasonal_adjustment,
         "transformation": spec.transformation,
-        "coverage_start": int(clean["year"].min()),
-        "coverage_end": int(clean["year"].max()),
+        "coverage_start": clean["date"].min(),
+        "coverage_end": clean["date"].max(),
         "n_observations": int(len(clean)),
         "last_updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "notes": spec.notes,
@@ -86,30 +103,29 @@ def fetch_and_clean_series(spec: SeriesSpec) -> tuple[pd.DataFrame, dict]:
     return clean, meta
 
 
-def derive_inflation(cpi: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
-    """CPI inflation, year-over-year %, derived from the CPI index -- kept as
-    its own file since it's a transformation of a source series, not a
-    source series itself (documented explicitly per the project's metadata
-    discipline)."""
-    df = cpi.copy().sort_values("year")
-    df["value"] = df["value"].pct_change() * 100
+def derive_yoy(base: pd.DataFrame, slug: str, description: str, periods: int, base_slug: str) -> tuple[pd.DataFrame, dict]:
+    """Year-over-year % change via a log-difference -- `periods` is 12 for a
+    monthly series, 1 for an annual one."""
+    df = base.copy().sort_values("date")
+    log_val = np.log(df["value"])
+    df["value"] = (log_val - log_val.shift(periods)) * 100
     df = df.dropna().reset_index(drop=True)
     CLEAN_DIR.mkdir(parents=True, exist_ok=True)
-    df.to_csv(CLEAN_DIR / "cpi_inflation_yoy.csv", index=False)
+    df.to_csv(CLEAN_DIR / f"{slug}.csv", index=False)
 
     meta = {
-        "slug": "cpi_inflation_yoy",
-        "description": "CPI inflation, year-over-year percent change",
-        "source": "Derived from cpi.csv (World Bank WDI indicator FP.CPI.TOTL)",
-        "indicator_code": "derived:FP.CPI.TOTL",
+        "slug": slug,
+        "description": description,
+        "source": f"Derived from {base_slug}.csv",
+        "indicator_code": f"derived:{base_slug}",
         "country": "Pakistan (PK)",
-        "frequency": "annual",
+        "frequency": "monthly" if periods == 12 else "annual",
         "unit": "percent, year-over-year",
         "base_year": "n/a",
         "seasonal_adjustment": "not applicable",
-        "transformation": "pct_change(cpi.value) * 100, computed after sorting by year",
-        "coverage_start": int(df["year"].min()),
-        "coverage_end": int(df["year"].max()),
+        "transformation": f"100 * (log(value_t) - log(value_t-{periods})), computed after sorting by date",
+        "coverage_start": df["date"].min(),
+        "coverage_end": df["date"].max(),
         "n_observations": int(len(df)),
         "last_updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "notes": "",
@@ -122,22 +138,22 @@ def main() -> None:
     cpi_clean = None
 
     for spec in REGISTRY:
-        print(f"Fetching {spec.slug} (World Bank {spec.indicator_code}) ...")
+        print(f"Fetching {spec.slug} ({spec.source} {spec.indicator_code}) ...")
         clean, meta = fetch_and_clean_series(spec)
         all_meta[spec.slug] = meta
-        print(f"  {meta['n_observations']} observations, {meta['coverage_start']}-{meta['coverage_end']}")
+        print(f"  {meta['n_observations']} observations, {meta['coverage_start']} to {meta['coverage_end']}")
         if spec.slug == "cpi":
             cpi_clean = clean
 
     if cpi_clean is not None:
-        print("Deriving cpi_inflation_yoy from cpi ...")
-        _, infl_meta = derive_inflation(cpi_clean)
+        print("Deriving cpi_inflation_yoy from cpi (monthly, 12-month log-difference) ...")
+        _, infl_meta = derive_yoy(cpi_clean, "cpi_inflation_yoy", "CPI inflation, year-over-year percent change", 12, "cpi")
         all_meta["cpi_inflation_yoy"] = infl_meta
-        print(f"  {infl_meta['n_observations']} observations, {infl_meta['coverage_start']}-{infl_meta['coverage_end']}")
+        print(f"  {infl_meta['n_observations']} observations, {infl_meta['coverage_start']} to {infl_meta['coverage_end']}")
 
     METADATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(METADATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(all_meta, f, indent=2)
+        json.dump(all_meta, f, indent=2, default=str)
     print(f"\nWrote metadata for {len(all_meta)} series to {METADATA_PATH}")
     print(f"Refresh date: {date.today().isoformat()}")
 

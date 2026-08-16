@@ -1,7 +1,8 @@
 name: Refresh data
 
-# Monthly, plus on-demand: re-pulls every series from source, regenerates
-# DATA.md, and opens a PR if anything changed. Keeps this repo a living
+# Monthly, plus on-demand: re-pulls every series from source, re-runs
+# stationarity diagnostics and cross-source validation, regenerates figures
+# and DATA.md, and opens a PR if anything changed. Keeps this repo a living
 # pipeline instead of a one-time dump.
 on:
   schedule:
@@ -23,9 +24,19 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Re-fetch and re-clean all series
-        run: |
-          python scripts/fetch_data.py
-          python scripts/build_data_md.py
+        run: python scripts/fetch_data.py
+
+      - name: Re-run stationarity diagnostics
+        run: python scripts/diagnostics.py
+
+      - name: Re-run cross-source validation
+        run: python scripts/validate_against_wdi.py
+
+      - name: Regenerate figures
+        run: python scripts/make_figures.py
+
+      - name: Regenerate DATA.md
+        run: python scripts/build_data_md.py
 
       - name: Validate refreshed data
         run: pytest -v
@@ -35,6 +46,6 @@ jobs:
         with:
           commit-message: "data: monthly refresh from World Bank API"
           title: "Monthly data refresh"
-          body: "Automated re-pull of all series in scripts/series_registry.py, opened by the refresh-data workflow."
+          body: "Automated re-pull of all series in scripts/series_registry.py, plus refreshed diagnostics/figures, opened by the refresh-data workflow."
           branch: automated/data-refresh
           delete-branch: true

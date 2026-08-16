@@ -1,0 +1,24 @@
+{
+  "cpi": {
+    "comparable_years": 38,
+    "year_range": [
+      1988,
+      2025
+    ],
+    "correlation_of_annual_growth_rates": 0.997721262645268,
+    "mean_absolute_difference_pp": 0.1679589691001031,
+    "verdict": "consistent",
+    "note": "CPI index -- different base years across GEM/WDI, so compare growth rates not levels"
+  },
+  "exchange_rate": {
+    "comparable_years": 38,
+    "year_range": [
+      1988,
+      2025
+    ],
+    "correlation_of_annual_growth_rates": 0.9914422601859905,
+    "mean_absolute_difference_pp": 0.43677452042697773,
+    "verdict": "consistent",
+    "note": "PKR/US$ official rate, period average"
+  }
+}

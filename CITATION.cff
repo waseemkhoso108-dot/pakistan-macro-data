@@ -5,8 +5,8 @@ type: dataset
 authors:
   - family-names: "Doudpoto"
     given-names: "M Rafique"
-version: 0.1.0
-date-released: 2026-08-16
+version: 0.2.0
+date-released: 2026-08-17
 url: "https://github.com/waseemkhoso108-dot/pakistan-macro-data"
 license: CC-BY-4.0
 keywords:

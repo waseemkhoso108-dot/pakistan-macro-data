@@ -1,0 +1,22 @@
+{
+  "title": "pakistan-macro-data: a reproducible, documented repository of Pakistani macroeconomic time series",
+  "description": "CPI, CPI inflation, exchange rate (bilateral, nominal effective, real effective), industrial production, reserves, broad money, and a policy-rate proxy for Pakistan -- monthly where available (World Bank Global Economic Monitor, 1987-present) and annual otherwise (World Bank WDI), each with full source/frequency/unit/transformation metadata, stationarity diagnostics, and cross-source validation.",
+  "creators": [
+    {
+      "name": "Doudpoto, M Rafique",
+      "affiliation": ""
+    }
+  ],
+  "license": "CC-BY-4.0",
+  "upload_type": "dataset",
+  "access_right": "open",
+  "keywords": [
+    "Pakistan",
+    "macroeconomics",
+    "time series",
+    "open data",
+    "CPI",
+    "exchange rate",
+    "State Bank of Pakistan"
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "broad_money_m2": {
+    "n_observations": 66,
+    "adf": {
+      "statistic": 28.420094725495353,
+      "p_value": 1.0,
+      "n_lags": 0,
+      "critical_values": {
+        "1%": -3.5352168748293127,
+        "5%": -2.9071540828402367,
+        "10%": -2.5911025443786984
+      },
+      "rejects_unit_root_at_5pct": false
+    },
+    "kpss": {
+      "statistic": 0.8208917560833539,
+      "p_value": 0.01,
+      "n_lags": 5,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "non-stationary (both tests agree)"
+  },
+  "cpi": {
+    "n_observations": 470,
+    "adf": {
+      "statistic": 3.474954573056722,
+      "p_value": 1.0,
+      "n_lags": 16,
+      "critical_values": {
+        "1%": -3.444868194858831,
+        "5%": -2.867941416548597,
+        "10%": -2.5701797149735146
+      },
+      "rejects_unit_root_at_5pct": false
+    },
+    "kpss": {
+      "statistic": 2.9562993503655215,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "non-stationary (both tests agree)"
+  },
+  "cpi_inflation_yoy": {
+    "n_observations": 458,
+    "adf": {
+      "statistic": -2.9370011158582834,
+      "p_value": 0.04121136757767741,
+      "n_lags": 14,
+      "critical_values": {
+        "1%": -3.4451978474132234,
+        "5%": -2.8680864144212057,
+        "10%": -2.5702569996789792
+      },
+      "rejects_unit_root_at_5pct": true
+    },
+    "kpss": {
+      "statistic": 0.19561274421222766,
+      "p_value": 0.1,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": false
+    },
+    "verdict": "stationary (both tests agree)"
+  },
+  "exchange_rate": {
+    "n_observations": 471,
+    "adf": {
+      "statistic": 1.1500869240219271,
+      "p_value": 0.995622219860672,
+      "n_lags": 15,
+      "critical_values": {
+        "1%": -3.4448040131772584,
+        "5%": -2.8679131843980197,
+        "10%": -2.5701646673107112
+      },
+      "rejects_unit_root_at_5pct": false
+    },
+    "kpss": {
+      "statistic": 2.884307919115355,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "non-stationary (both tests agree)"
+  },
+  "exchange_rate_neer": {
+    "n_observations": 454,
+    "adf": {
+      "statistic": -3.584743814442912,
+      "p_value": 0.006059481563928829,
+      "n_lags": 16,
+      "critical_values": {
+        "1%": -3.4454029241336483,
+        "5%": -2.8681766097362087,
+        "10%": -2.570305075326362
+      },
+      "rejects_unit_root_at_5pct": true
+    },
+    "kpss": {
+      "statistic": 3.336839999112247,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "ambiguous (ADF and KPSS disagree -- common near a trend/level shift)"
+  },
+  "exchange_rate_reer": {
+    "n_observations": 454,
+    "adf": {
+      "statistic": -3.29624794992168,
+      "p_value": 0.015047026561352757,
+      "n_lags": 7,
+      "critical_values": {
+        "1%": -3.4450973903602367,
+        "5%": -2.868042229965336,
+        "10%": -2.570233448893
+      },
+      "rejects_unit_root_at_5pct": true
+    },
+    "kpss": {
+      "statistic": 2.4724144833985173,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "ambiguous (ADF and KPSS disagree -- common near a trend/level shift)"
+  },
+  "industrial_activity": {
+    "n_observations": 421,
+    "adf": {
+      "statistic": -0.6168854510507487,
+      "p_value": 0.8671207782187225,
+      "n_lags": 12,
+      "critical_values": {
+        "1%": -3.446479704252724,
+        "5%": -2.8686500930967354,
+        "10%": -2.5705574627547096
+      },
+      "rejects_unit_root_at_5pct": false
+    },
+    "kpss": {
+      "statistic": 3.2563452567794915,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "non-stationary (both tests agree)"
+  },
+  "policy_rate_proxy": {
+    "n_observations": 18,
+    "adf": {
+      "statistic": -58.31232483034715,
+      "p_value": 0.0,
+      "n_lags": 7,
+      "critical_values": {
+        "1%": -4.331573,
+        "5%": -3.23295,
+        "10%": -2.7487
+      },
+      "rejects_unit_root_at_5pct": true
+    },
+    "kpss": {
+      "statistic": 0.18109611278938406,
+      "p_value": 0.1,
+      "n_lags": 2,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": false
+    },
+    "verdict": "stationary (both tests agree)"
+  },
+  "reserves": {
+    "n_observations": 434,
+    "adf": {
+      "statistic": -1.2165461903424042,
+      "p_value": 0.6664377671884962,
+      "n_lags": 11,
+      "critical_values": {
+        "1%": -3.44594128742536,
+        "5%": -2.868413360220551,
+        "10%": -2.570431271085555
+      },
+      "rejects_unit_root_at_5pct": false
+    },
+    "kpss": {
+      "statistic": 2.7821895607385096,
+      "p_value": 0.01,
+      "n_lags": 12,
+      "critical_values": {
+        "10%": 0.347,
+        "5%": 0.463,
+        "2.5%": 0.574,
+        "1%": 0.739
+      },
+      "rejects_stationarity_at_5pct": true
+    },
+    "verdict": "non-stationary (both tests agree)"
+  }
+}
