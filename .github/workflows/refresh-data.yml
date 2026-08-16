@@ -1,0 +1,40 @@
+name: Refresh data
+
+# Monthly, plus on-demand: re-pulls every series from source, regenerates
+# DATA.md, and opens a PR if anything changed. Keeps this repo a living
+# pipeline instead of a one-time dump.
+on:
+  schedule:
+    - cron: "0 6 1 * *" # 06:00 UTC on the 1st of every month
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Re-fetch and re-clean all series
+        run: |
+          python scripts/fetch_data.py
+          python scripts/build_data_md.py
+
+      - name: Validate refreshed data
+        run: pytest -v
+
+      - name: Open a PR if anything changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "data: monthly refresh from World Bank API"
+          title: "Monthly data refresh"
+          body: "Automated re-pull of all series in scripts/series_registry.py, opened by the refresh-data workflow."
+          branch: automated/data-refresh
+          delete-branch: true

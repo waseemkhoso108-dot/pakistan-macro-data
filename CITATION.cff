@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+title: "pakistan-macro-data: a documented, reproducible repository of Pakistani macroeconomic time series"
+type: dataset
+authors:
+  - family-names: "Doudpoto"
+    given-names: "M Rafique"
+version: 0.1.0
+date-released: 2026-08-16
+url: "https://github.com/waseemkhoso108-dot/pakistan-macro-data"
+license: CC-BY-4.0
+keywords:
+  - Pakistan
+  - macroeconomics
+  - time series
+  - open data
+  - CPI
+  - exchange rate
